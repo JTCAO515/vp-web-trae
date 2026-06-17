@@ -1,13 +1,13 @@
+import { LoginForm } from '@/components/LoginForm';
 import { PageContainer } from '@/components/PageContainer';
 
-export default function LoginPage() {
+export default async function LoginPage(props: { searchParams: Promise<{ next?: string }> }) {
+  const searchParams = await props.searchParams;
+  const nextPath = searchParams.next ?? '/trips';
+
   return (
     <PageContainer title="登录或注册">
-      <div className="rounded-xl border bg-white p-5 shadow-sm">
-        <p className="text-sm text-zinc-600">
-          当前先保留登录入口占位。下一步会接入 `POST /auth/login` 与 `POST /auth/register`，并支持“保存时再登录”。
-        </p>
-      </div>
+      <LoginForm nextPath={nextPath} />
     </PageContainer>
   );
 }
