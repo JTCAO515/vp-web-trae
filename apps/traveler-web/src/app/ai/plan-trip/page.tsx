@@ -88,6 +88,29 @@ function buildTripDraft(input: {
   };
 }
 
+function buildPreviewSections(answer: string, totalDays: number) {
+  const normalizedLines = answer
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  if (!normalizedLines.length) {
+    return Array.from({ length: totalDays }, (_, index) => ({
+      title: `第 ${index + 1} 天`,
+      lines: ['等待 AI 返回更具体的行程描述。'],
+    }));
+  }
+
+  return Array.from({ length: totalDays }, (_, index) => {
+    const slice = normalizedLines.slice(index * 2, index * 2 + 2);
+
+    return {
+      title: `第 ${index + 1} 天`,
+      lines: slice.length ? slice : [`参考整段 AI 结果安排第 ${index + 1} 天行程。`],
+    };
+  });
+}
+
 export default function PlanTripPage() {
   const router = useRouter();
   const [destination, setDestination] = useState('北京');
@@ -121,6 +144,10 @@ export default function PlanTripPage() {
           })
         : null,
     [days, destination, parsedInterests, result],
+  );
+  const previewSections = useMemo(
+    () => (result ? buildPreviewSections(result.answer, days) : []),
+    [days, result],
   );
 
   async function saveTrip(draft: PendingTripDraft) {
@@ -243,28 +270,63 @@ export default function PlanTripPage() {
         <div className="space-y-4">
           <div className="rounded-xl border bg-white p-5 shadow-sm">
             <h2 className="text-base font-medium">规划结果</h2>
-            <p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-zinc-700">
-              {result?.answer ?? '提交表单后，这里会展示 AI 返回的行程建议。'}
-            </p>
+            {result ? (
+              <div className="mt-4 space-y-4">
+                <div className="flex flex-wrap gap-2 text-xs text-zinc-500">
+                  <span className="rounded-full bg-zinc-100 px-3 py-1">模型：{result.model}</span>
+                  <span className="rounded-full bg-zinc-100 px-3 py-1">服务商：{result.provider}</span>
+                  <span className="rounded-full bg-zinc-100 px-3 py-1">策略：{result.routePolicy}</span>
+                  <span className="rounded-full bg-zinc-100 px-3 py-1">尝试次数：{result.attemptCount}</span>
+                </div>
+
+                <div className="rounded-lg bg-zinc-50 p-4 text-sm leading-7 text-zinc-700">
+                  <p className="whitespace-pre-wrap">{result.answer}</p>
+                </div>
+              </div>
+            ) : (
+              <p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-zinc-700">
+                提交表单后，这里会展示 AI 返回的行程建议。
+              </p>
+            )}
           </div>
 
           {result && tripDraft ? (
-            <div className="rounded-xl border bg-white p-5 shadow-sm">
-              <div className="flex flex-wrap items-center gap-3">
-                <ActionGuardButton
-                  isAuthenticated={isAuthenticated}
-                  nextPath="/ai/plan-trip"
-                  onAuthorized={() => void saveTrip(tripDraft)}
-                  tripDraft={tripDraft}
-                />
-                <span className="text-xs text-zinc-500">
-                  {isAuthenticated ? '已登录，点击后会直接保存。' : '未登录时会先跳到登录页，登录后自动继续保存。'}
-                </span>
+            <>
+              <div className="rounded-xl border bg-white p-5 shadow-sm">
+                <h2 className="text-base font-medium">行程预览</h2>
+                <div className="mt-4 grid gap-4 md:grid-cols-2">
+                  {previewSections.map((section) => (
+                    <section key={section.title} className="rounded-lg border bg-zinc-50 p-4">
+                      <h3 className="text-sm font-medium text-zinc-900">{section.title}</h3>
+                      <ul className="mt-3 space-y-2 text-sm leading-6 text-zinc-700">
+                        {section.lines.map((line) => (
+                          <li key={`${section.title}-${line}`} className="rounded-md bg-white p-3">
+                            {line}
+                          </li>
+                        ))}
+                      </ul>
+                    </section>
+                  ))}
+                </div>
               </div>
-              {saveError ? (
-                <div className="mt-3 rounded-md border border-red-200 bg-red-50 p-2 text-sm text-red-700">{saveError}</div>
-              ) : null}
-            </div>
+
+              <div className="rounded-xl border bg-white p-5 shadow-sm">
+                <div className="flex flex-wrap items-center gap-3">
+                  <ActionGuardButton
+                    isAuthenticated={isAuthenticated}
+                    nextPath="/ai/plan-trip"
+                    onAuthorized={() => void saveTrip(tripDraft)}
+                    tripDraft={tripDraft}
+                  />
+                  <span className="text-xs text-zinc-500">
+                    {isAuthenticated ? '已登录，点击后会直接保存。' : '未登录时会先跳到登录页，登录后自动继续保存。'}
+                  </span>
+                </div>
+                {saveError ? (
+                  <div className="mt-3 rounded-md border border-red-200 bg-red-50 p-2 text-sm text-red-700">{saveError}</div>
+                ) : null}
+              </div>
+            </>
           ) : null}
         </div>
       </div>

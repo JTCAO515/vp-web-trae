@@ -1,3 +1,4 @@
+import { CreateSnapshotButton } from '@/components/CreateSnapshotButton';
 import { PageContainer } from '@/components/PageContainer';
 import { fetchApiJson } from '@/lib/api';
 import { requireTravelerSession } from '@/lib/guards';
@@ -46,6 +47,36 @@ export default async function TripDetailPage(props: { params: Promise<{ id: stri
             {trip.destination} · {trip.startDate} ~ {trip.endDate}
           </p>
           <div className="mt-4 whitespace-pre-wrap text-sm leading-7 text-zinc-800">{trip.aiSummary}</div>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_280px]">
+          <div className="rounded-xl border bg-white p-5 shadow-sm">
+            <h2 className="text-base font-medium">资产信息</h2>
+            <dl className="mt-4 grid gap-3 text-sm text-zinc-700">
+              <div className="flex items-center justify-between gap-4 border-b pb-3">
+                <dt className="text-zinc-500">状态</dt>
+                <dd>{trip.status}</dd>
+              </div>
+              <div className="flex items-center justify-between gap-4 border-b pb-3">
+                <dt className="text-zinc-500">快照数量</dt>
+                <dd>{trip.snapshotCount}</dd>
+              </div>
+              <div className="flex items-center justify-between gap-4">
+                <dt className="text-zinc-500">最近快照</dt>
+                <dd className="truncate text-right">{trip.latestSnapshotId ?? '暂无'}</dd>
+              </div>
+            </dl>
+          </div>
+
+          <div className="rounded-xl border bg-white p-5 shadow-sm">
+            <h2 className="text-base font-medium">快照</h2>
+            <p className="mt-2 text-sm leading-6 text-zinc-600">
+              在调整行程前先创建一个快照，后面就能把“当前版本”明确沉淀下来。
+            </p>
+            <div className="mt-4">
+              <CreateSnapshotButton tripId={trip.id} />
+            </div>
+          </div>
         </div>
 
         <div className="space-y-3">
