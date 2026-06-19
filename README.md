@@ -1,6 +1,10 @@
-# vp-web-trae
+# VP-Trae-Web
 
 这个仓库只承载 **用户端（游客端）** Web 前台，对应线上站点：`vp.go2china.space`。
+
+GitHub 仓库：
+
+- `https://github.com/JTCAO515/VP-Trae-Web`
 
 代码位置：
 
